@@ -1,4 +1,9 @@
-import numpy as np
+import os
+import subprocess
+import tempfile
+
+import soundfile as sf
+import torch
 from pyannote.audio import Pipeline
 from sklearn.cluster import AgglomerativeClustering
 from src.config import DIARIZATION_MODEL, HF_TOKEN
@@ -16,13 +21,30 @@ def _load_pipeline():
     return _diarization_pipeline
 
 
+def _to_wav(input_path: str) -> str:
+    fd, out_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    subprocess.run(
+        ["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", out_path],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return out_path
+
+
 def diarize(wav_path: str) -> list[dict]:
     pipeline = _load_pipeline()
-    diarization = pipeline(wav_path)
+    converted_path = _to_wav(wav_path)
+    audio, sample_rate = sf.read(converted_path, dtype="float32")
+    os.remove(converted_path)
+
+    waveform = torch.from_numpy(audio).unsqueeze(0)
+    result = pipeline({"waveform": waveform, "sample_rate": sample_rate})
+    annotation = result.speaker_diarization
 
     turns = []
-    embeddings = []
-    for turn, _, speaker_label in diarization.itertracks(yield_label=True):
+    for turn, _, speaker_label in annotation.itertracks(yield_label=True):
         turns.append({
             "start": turn.start,
             "end": turn.end,
@@ -32,15 +54,17 @@ def diarize(wav_path: str) -> list[dict]:
     if not turns:
         raise DiarizationError("No speakers detected")
 
+    turns.sort(key=lambda t: t["start"])
     return _stabilize_speaker_labels(turns)
 
 
 def _stabilize_speaker_labels(turns: list[dict]) -> list[dict]:
-    raw_labels = sorted(set(t["raw_speaker"] for t in turns))
-    label_map = {raw: f"Person {i + 1}" for i, raw in enumerate(raw_labels)}
-
+    label_map = {}
     for turn in turns:
-        turn["speaker"] = label_map[turn["raw_speaker"]]
+        raw = turn["raw_speaker"]
+        if raw not in label_map:
+            label_map[raw] = f"Person {len(label_map) + 1}"
+        turn["speaker"] = label_map[raw]
         del turn["raw_speaker"]
 
     return turns
