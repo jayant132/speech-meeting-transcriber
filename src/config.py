@@ -5,9 +5,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-WHISPER_MODEL = "medium"
+WHISPER_MODEL = "small"
 WHISPER_COMPUTE_TYPE = "int8"
-WHISPER_DEVICE = "cuda"
+WHISPER_DEVICE = "cpu"
 
 ODIA_MODEL = "ai4bharat/indicwav2vec-odia"
 
