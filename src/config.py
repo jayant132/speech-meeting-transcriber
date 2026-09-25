@@ -1,21 +1,22 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-WHISPER_MODEL = "tiny"
-WHISPER_COMPUTE_TYPE = "int8"
-WHISPER_DEVICE = "cpu"
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "tiny")
+WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
+WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
 
-ODIA_MODEL = "ai4bharat/indicwav2vec-odia"
+ODIA_MODEL = os.getenv("ODIA_MODEL", "ai4bharat/indicwav2vec-odia")
 
-DIARIZATION_MODEL = "pyannote/speaker-diarization-3.1"
+DIARIZATION_MODEL = os.getenv("DIARIZATION_MODEL", "pyannote/speaker-diarization-3.1")
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-SUMMARIZATION_MODEL = "llama3.2:1b"
-OLLAMA_HOST = "http://localhost:11434"
+SUMMARIZATION_MODEL = os.getenv("SUMMARIZATION_MODEL", "llama3.2:1b")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
 SAMPLE_RATE = 16000
 
