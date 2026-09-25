@@ -31,6 +31,8 @@ def _load_odia():
 
 def _extract_segment_audio(wav_path: str, start: float, end: float):
     audio, sr = sf.read(wav_path)
+    if audio.ndim > 1:
+        audio = audio.mean(axis=1)
     start_sample = int(start * sr)
     end_sample = int(end * sr)
     return audio[start_sample:end_sample], sr
