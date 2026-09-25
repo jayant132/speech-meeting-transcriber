@@ -2,8 +2,9 @@
 from faster_whisper import WhisperModel
 from transformers import AutoModelForCTC, AutoProcessor
 import torch
+import torchaudio
 import soundfile as sf
-from src.config import WHISPER_MODEL, WHISPER_COMPUTE_TYPE, WHISPER_DEVICE, ODIA_MODEL, SAMPLE_RATE, SUPPORTED_LANGUAGES
+from src.config import WHISPER_MODEL, WHISPER_COMPUTE_TYPE, WHISPER_DEVICE, ODIA_MODEL, SAMPLE_RATE, SUPPORTED_LANGUAGES, HF_TOKEN
 from src.errors import UnsupportedLanguageError, TranscriptionError
 
 _whisper_model = None
@@ -23,8 +24,8 @@ def _load_whisper():
 def _load_odia():
     global _odia_model, _odia_processor
     if _odia_model is None:
-        _odia_model = AutoModelForCTC.from_pretrained(ODIA_MODEL)
-        _odia_processor = AutoProcessor.from_pretrained(ODIA_MODEL)
+        _odia_model = AutoModelForCTC.from_pretrained(ODIA_MODEL, token=HF_TOKEN)
+        _odia_processor = AutoProcessor.from_pretrained(ODIA_MODEL, token=HF_TOKEN)
     return _odia_model, _odia_processor
 
 
@@ -37,7 +38,11 @@ def _extract_segment_audio(wav_path: str, start: float, end: float):
 
 def _transcribe_odia(audio, sample_rate: int) -> str:
     model, processor = _load_odia()
-    inputs = processor(audio, sampling_rate=sample_rate, return_tensors="pt")
+    if sample_rate != SAMPLE_RATE:
+        audio = torchaudio.functional.resample(
+            torch.tensor(audio, dtype=torch.float32), sample_rate, SAMPLE_RATE
+        ).numpy()
+    inputs = processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
     with torch.no_grad():
         logits = model(inputs.input_values).logits
     prediction_ids = torch.argmax(logits, dim=-1)
