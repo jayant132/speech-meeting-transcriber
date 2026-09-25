@@ -6,4 +6,8 @@ __pycache__/
 models/
 .cache/
 samples/*.wav
-samples/*.mp4
+samples/*.mp4uploads/
+*.db
+.env
+venv/
+__pycache__/
