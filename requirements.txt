@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+faster-whisper
+pyannote.audio
+transformers
+soundfile
+ffmpeg-python
+pytest
+httpx
