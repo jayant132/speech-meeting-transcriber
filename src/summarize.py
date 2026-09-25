@@ -1,21 +1,25 @@
-﻿import json
+import json
 import re
 import requests
 from src.config import SUMMARIZATION_MODEL, OLLAMA_HOST
 from src.errors import PipelineError
 
-_PROMPT_TEMPLATE = """You are analyzing a meeting transcript. Based on the transcript below, extract the following and respond ONLY with valid JSON, no other text:
-
-{{
-  "summary": "a concise 2-4 sentence summary of the meeting",
-  "key_points": ["list of important discussion points"],
-  "decisions": ["list of decisions made, if any"],
-  "action_items": ["list of action items with responsible person if mentioned"]
-}}
+_PROMPT_TEMPLATE = """You are a meeting-minutes assistant. Read the transcript below and produce a genuine summary in your own words. Do not copy transcript lines verbatim, do not repeat speaker labels as JSON keys, do not restate this instruction.
 
 Transcript:
 {transcript}
 """
+
+_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string"},
+        "key_points": {"type": "array", "items": {"type": "string"}},
+        "decisions": {"type": "array", "items": {"type": "string"}},
+        "action_items": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["summary", "key_points", "decisions", "action_items"],
+}
 
 
 def _format_transcript(merged_transcript: list[dict]) -> str:
@@ -43,6 +47,17 @@ def _extract_json(raw_output: str) -> dict:
     raise PipelineError(f"Model did not return valid JSON: {raw_output[:300]}")
 
 
+def _looks_like_echo(result: dict, transcript_text: str) -> bool:
+    summary = result.get("summary", "")
+    if not summary:
+        return True
+    if len(summary) > len(transcript_text) * 0.6:
+        return True
+    if transcript_text[:40] and transcript_text[:40] in summary:
+        return True
+    return False
+
+
 def generate_summary(merged_transcript: list[dict]) -> dict:
     transcript_text = _format_transcript(merged_transcript)
     prompt = _PROMPT_TEMPLATE.format(transcript=transcript_text)
@@ -53,7 +68,7 @@ def generate_summary(merged_transcript: list[dict]) -> dict:
             "model": SUMMARIZATION_MODEL,
             "prompt": prompt,
             "stream": False,
-            "format": "json",
+            "format": _RESPONSE_SCHEMA,
         },
         timeout=180,
     )
@@ -62,4 +77,9 @@ def generate_summary(merged_transcript: list[dict]) -> dict:
         raise PipelineError(f"Summarization failed: {response.text}")
 
     raw_output = response.json()["response"].strip()
-    return _extract_json(raw_output)
+    result = _extract_json(raw_output)
+
+    if _looks_like_echo(result, transcript_text):
+        raise PipelineError("Summarizer echoed the transcript instead of summarizing it")
+
+    return result
