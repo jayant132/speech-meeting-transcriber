@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 from pyannote.audio import Pipeline
 from sklearn.cluster import AgglomerativeClustering
 from src.config import DIARIZATION_MODEL, HF_TOKEN
@@ -11,7 +11,7 @@ def _load_pipeline():
     global _diarization_pipeline
     if _diarization_pipeline is None:
         _diarization_pipeline = Pipeline.from_pretrained(
-            DIARIZATION_MODEL, use_auth_token=HF_TOKEN
+            DIARIZATION_MODEL, token=HF_TOKEN
         )
     return _diarization_pipeline
 
