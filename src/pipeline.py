@@ -1,8 +1,8 @@
-﻿import gc
+import gc
 import torch
 from src.audio import normalize_audio, get_speech_segments
 from src.diarize import diarize
-from src.transcribe import transcribe_segment
+from src.transcribe import transcribe_segment, detect_meeting_language
 from src.analyze import merge_transcript, compute_speaker_stats
 from src.summarize import generate_summary
 from src.storage import update_job_status
@@ -23,8 +23,10 @@ def run_pipeline(job_id: str, input_path: str):
         diarized_turns = diarize(wav_path)
         _release_gpu()
 
+        meeting_language = detect_meeting_language(wav_path)
+
         transcribed_segments = [
-            transcribe_segment(wav_path, turn["start"], turn["end"])
+            transcribe_segment(wav_path, turn["start"], turn["end"], meeting_language)
             for turn in diarized_turns
         ]
         _release_gpu()

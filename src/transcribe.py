@@ -3,7 +3,7 @@ from faster_whisper import WhisperModel
 from transformers import AutoModelForCTC, AutoProcessor
 import torch
 import soundfile as sf
-from src.config import WHISPER_MODEL, WHISPER_COMPUTE_TYPE, WHISPER_DEVICE, ODIA_MODEL, SAMPLE_RATE
+from src.config import WHISPER_MODEL, WHISPER_COMPUTE_TYPE, WHISPER_DEVICE, ODIA_MODEL, SAMPLE_RATE, SUPPORTED_LANGUAGES
 from src.errors import UnsupportedLanguageError, TranscriptionError
 
 _whisper_model = None
@@ -52,22 +52,27 @@ def _cleanup_odia_text(text: str) -> str:
     return text
 
 
-def transcribe_segment(wav_path: str, start: float, end: float) -> dict:
+def detect_meeting_language(wav_path: str) -> str:
+    whisper = _load_whisper()
+    _, info = whisper.transcribe(wav_path, language=None)
+    return info.language if info.language in SUPPORTED_LANGUAGES else "unsupported"
+
+
+def transcribe_segment(wav_path: str, start: float, end: float, language: str) -> dict:
     try:
         audio, sr = _extract_segment_audio(wav_path, start, end)
     except Exception as e:
         raise TranscriptionError(f"Failed to extract segment: {e}")
 
-    whisper = _load_whisper()
-    segments, info = whisper.transcribe(audio, language=None)
-    detected_language = info.language
-
-    if detected_language == "or":
+    if language == "or":
         text = _transcribe_odia(audio, sr)
-    elif detected_language in ("en", "hi"):
+    elif language in ("en", "hi"):
+        whisper = _load_whisper()
+        segments, _ = whisper.transcribe(audio, language=language)
         text = " ".join(s.text.strip() for s in segments)
     else:
+        whisper = _load_whisper()
+        segments, _ = whisper.transcribe(audio, language=None)
         text = " ".join(s.text.strip() for s in segments)
-        detected_language = "unsupported"
 
-    return {"text": text.strip(), "language": detected_language}
+    return {"text": text.strip(), "language": language}
