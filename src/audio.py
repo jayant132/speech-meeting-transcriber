@@ -1,5 +1,7 @@
 ﻿import subprocess
 import torch
+import numpy as np
+import soundfile as sf
 from pathlib import Path
 from src.config import SAMPLE_RATE
 from src.errors import UnsupportedFileError, CorruptAudioError
@@ -39,15 +41,16 @@ def normalize_audio(input_path: str, output_dir: str) -> str:
 
 def get_speech_segments(wav_path: str) -> list[dict]:
     model, utils = _load_vad()
-    get_speech_timestamps, _, read_audio, *_ = utils
+    get_speech_timestamps = utils[0]
 
-    wav = read_audio(wav_path, sampling_rate=SAMPLE_RATE)
-    timestamps = get_speech_timestamps(wav, model, sampling_rate=SAMPLE_RATE)
+    audio, sr = sf.read(wav_path, dtype="float32")
+    wav = torch.from_numpy(audio)
+    timestamps = get_speech_timestamps(wav, model, sampling_rate=sr)
 
     if not timestamps:
         raise CorruptAudioError("No speech detected in audio")
 
     return [
-        {"start": ts["start"] / SAMPLE_RATE, "end": ts["end"] / SAMPLE_RATE}
+        {"start": ts["start"] / sr, "end": ts["end"] / sr}
         for ts in timestamps
     ]
