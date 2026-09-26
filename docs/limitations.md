@@ -65,3 +65,11 @@ transcript. An anti-echo guard prevents the model from simply restating the
 transcript as a summary, but does not fully prevent this kind of
 over-interpretation. A larger local model would likely improve this, at the cost
 of slower inference on this hardware.
+
+- **Short-segment language misdetection**: Whisper's language ID is less
+  reliable on very short audio segments (under ~2 seconds), occasionally
+  returning a language outside {en, hi, or} even when the transcribed text
+  is clearly one of the supported languages. These segments are labeled
+  "unsupported" but their transcribed text remains usable. A possible future
+  improvement: fall back to the diarization turn's dominant/majority
+  language when an individual short segment's LID confidence is low.

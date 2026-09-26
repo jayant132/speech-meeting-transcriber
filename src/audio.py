@@ -34,7 +34,10 @@ def normalize_audio(input_path: str, output_dir: str) -> str:
     ]
     result = subprocess.run(command, capture_output=True)
     if result.returncode != 0 or not output_path.exists():
-        raise CorruptAudioError(f"Failed to process: {input_path.name}")
+        stderr_tail = result.stderr.decode(errors="ignore")[-500:] if result.stderr else "no ffmpeg output"
+        raise CorruptAudioError(
+            f"Failed to process '{input_path.name}' (ffmpeg exit code {result.returncode}): {stderr_tail}"
+        )
 
     return str(output_path)
 
