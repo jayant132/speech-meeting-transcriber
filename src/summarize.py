@@ -1,4 +1,4 @@
-import json
+﻿import json
 import re
 import requests
 from src.config import SUMMARIZATION_MODEL, OLLAMA_HOST
@@ -20,6 +20,9 @@ _RESPONSE_SCHEMA = {
     },
     "required": ["summary", "key_points", "decisions", "action_items"],
 }
+
+_MIN_TRANSCRIPT_WORDS_FOR_ECHO_CHECK = 40
+_WORD_OVERLAP_THRESHOLD = 0.75
 
 
 def _format_transcript(merged_transcript: list[dict]) -> str:
@@ -47,15 +50,27 @@ def _extract_json(raw_output: str) -> dict:
     raise PipelineError(f"Model did not return valid JSON: {raw_output[:300]}")
 
 
+def _word_overlap_ratio(summary: str, transcript_text: str) -> float:
+    summary_words = set(re.findall(r"\w+", summary.lower()))
+    transcript_words = set(re.findall(r"\w+", transcript_text.lower()))
+    if not summary_words:
+        return 0.0
+    return len(summary_words & transcript_words) / len(summary_words)
+
+
 def _looks_like_echo(result: dict, transcript_text: str) -> bool:
     summary = result.get("summary", "")
     if not summary:
         return True
-    if len(summary) > len(transcript_text) * 0.6:
-        return True
+
+    transcript_word_count = len(re.findall(r"\w+", transcript_text))
+    if transcript_word_count < _MIN_TRANSCRIPT_WORDS_FOR_ECHO_CHECK:
+        return False
+
     if transcript_text[:40] and transcript_text[:40] in summary:
         return True
-    return False
+
+    return _word_overlap_ratio(summary, transcript_text) > _WORD_OVERLAP_THRESHOLD
 
 
 def generate_summary(merged_transcript: list[dict]) -> dict:
@@ -69,6 +84,7 @@ def generate_summary(merged_transcript: list[dict]) -> dict:
             "prompt": prompt,
             "stream": False,
             "format": _RESPONSE_SCHEMA,
+            "options": {"temperature": 0.1},
         },
         timeout=180,
     )

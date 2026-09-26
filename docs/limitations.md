@@ -9,3 +9,12 @@
   `torchaudio.load()` and passing the raw waveform tensor directly to the
   pyannote pipeline. This avoids the torchcodec dependency entirely and is
   fully supported by pyannote's pipeline API.
+
+
+  - **CUDA device hang**: `WHISPER_DEVICE="cuda"` caused faster-whisper
+  (ctranslate2) to hang indefinitely during model initialization on this
+  machine, rather than failing with a clear error — likely due to an
+  outdated NVIDIA driver (462.30 / CUDA 11.2) incompatible with the
+  installed ctranslate2/torch CUDA runtime expectations. Switched to
+  `WHISPER_DEVICE="cpu"` to unblock development; GPU acceleration is a
+  possible future improvement pending a driver update.
