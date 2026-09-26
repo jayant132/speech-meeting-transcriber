@@ -1,4 +1,4 @@
-﻿import sqlite3
+import sqlite3
 import json
 import uuid
 from datetime import datetime
@@ -14,10 +14,14 @@ def init_db():
             filename TEXT,
             result TEXT,
             error TEXT,
+            stage TEXT,
             created_at TEXT,
             updated_at TEXT
         )
     """)
+    existing_columns = {row[1] for row in conn.execute("PRAGMA table_info(jobs)").fetchall()}
+    if "stage" not in existing_columns:
+        conn.execute("ALTER TABLE jobs ADD COLUMN stage TEXT")
     conn.commit()
     conn.close()
 
@@ -27,8 +31,8 @@ def create_job(filename: str) -> str:
     now = datetime.utcnow().isoformat()
     conn = sqlite3.connect(DB_PATH)
     conn.execute(
-        "INSERT INTO jobs (id, status, filename, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
-        (job_id, "pending", filename, now, now),
+        "INSERT INTO jobs (id, status, filename, stage, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (job_id, "pending", filename, "queued", now, now),
     )
     conn.commit()
     conn.close()
@@ -41,6 +45,17 @@ def update_job_status(job_id: str, status: str, result: dict = None, error: str 
     conn.execute(
         "UPDATE jobs SET status = ?, result = ?, error = ?, updated_at = ? WHERE id = ?",
         (status, json.dumps(result) if result else None, error, now, job_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def update_job_stage(job_id: str, stage: str):
+    now = datetime.utcnow().isoformat()
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute(
+        "UPDATE jobs SET stage = ?, updated_at = ? WHERE id = ?",
+        (stage, now, job_id),
     )
     conn.commit()
     conn.close()

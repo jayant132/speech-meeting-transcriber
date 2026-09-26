@@ -29,3 +29,36 @@
 2026-09-26 20:21:18 | INFO     | faster_whisper | Processing audio with duration 00:01.363
 2026-09-26 20:21:36 | INFO     | faster_whisper | Processing audio with duration 00:01.650
 2026-09-26 20:21:54 | INFO     | faster_whisper | Processing audio with duration 00:01.751
+2026-09-26 22:05:12 | INFO     | src.main | Database initialized, application starting up
+2026-09-26 22:06:09 | INFO     | src.main | Job c8832cf6-6283-4fd5-a68d-fb9464deb281 created for file 'demo.mp3'
+2026-09-26 22:06:09 | INFO     | src.main | Job c8832cf6-6283-4fd5-a68d-fb9464deb281 scheduled for processing
+2026-09-26 22:06:10 | WARNING  | src.main | Status requested for unknown job <job_id>
+2026-09-26 22:06:14 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/pyannote/speaker-diarization-3.1/resolve/main/config.yaml "HTTP/1.1 200 OK"
+2026-09-26 22:06:16 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/pyannote/segmentation-3.0/resolve/main/pytorch_model.bin "HTTP/1.1 302 Found"
+2026-09-26 22:06:18 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/pyannote/speaker-diarization-community-1/resolve/main/plda/xvec_transform.npz "HTTP/1.1 302 Found"
+2026-09-26 22:06:18 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/pyannote/speaker-diarization-community-1/resolve/main/plda/plda.npz "HTTP/1.1 302 Found"
+2026-09-26 22:06:19 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM/resolve/main/pytorch_model.bin "HTTP/1.1 302 Found"
+2026-09-26 22:07:19 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/facebook/mms-lid-126/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-09-26 22:07:20 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/facebook/mms-lid-126/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-26 22:07:20 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/facebook/mms-lid-126/53da6e311f3ce48f324fe335924216187e3109a4/preprocessor_config.json?%2Ffacebook%2Fmms-lid-126%2Fresolve%2Fmain%2Fpreprocessor_config.json=&etag=%2236ebe8b7c1cc967b3059f0494ae8a1069dd67655%22 "HTTP/1.1 200 OK"
+2026-09-26 22:07:21 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/facebook/mms-lid-126/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-09-26 22:07:21 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/facebook/mms-lid-126/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-26 22:07:21 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/facebook/mms-lid-126/53da6e311f3ce48f324fe335924216187e3109a4/preprocessor_config.json?%2Ffacebook%2Fmms-lid-126%2Fresolve%2Fmain%2Fpreprocessor_config.json=&etag=%2236ebe8b7c1cc967b3059f0494ae8a1069dd67655%22 "HTTP/1.1 200 OK"
+2026-09-26 22:07:23 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/facebook/mms-lid-126/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-26 22:07:23 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/facebook/mms-lid-126/53da6e311f3ce48f324fe335924216187e3109a4/config.json?%2Ffacebook%2Fmms-lid-126%2Fresolve%2Fmain%2Fconfig.json=&etag=%2290c4691b09929d2d8fa9fc19cee77e43cca40cba%22 "HTTP/1.1 200 OK"
+2026-09-26 22:07:23 | INFO     | httpx | HTTP Request: HEAD https://huggingface.co/facebook/mms-lid-126/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+2026-09-26 22:07:46 | INFO     | httpx | HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-medium/revision/main "HTTP/1.1 200 OK"
+2026-09-26 22:07:56 | INFO     | faster_whisper | Processing audio with duration 00:00.586
+2026-09-26 22:08:06 | INFO     | faster_whisper | Detected language 'en' with probability 0.37
+2026-09-26 22:08:52 | INFO     | faster_whisper | Processing audio with duration 00:13.311
+2026-09-26 22:09:25 | INFO     | faster_whisper | Processing audio with duration 00:00.857
+2026-09-26 22:09:36 | INFO     | faster_whisper | Detected language 'hi' with probability 0.54
+2026-09-26 22:10:07 | INFO     | faster_whisper | Processing audio with duration 00:01.431
+2026-09-26 22:10:34 | INFO     | faster_whisper | Processing audio with duration 00:01.211
+2026-09-26 22:10:43 | INFO     | faster_whisper | Detected language 'hi' with probability 0.41
+2026-09-26 22:10:58 | INFO     | faster_whisper | Processing audio with duration 00:01.329
+2026-09-26 22:11:14 | INFO     | faster_whisper | Processing audio with duration 00:02.544
+2026-09-26 22:11:29 | INFO     | faster_whisper | Processing audio with duration 00:01.363
+2026-09-26 22:11:44 | INFO     | faster_whisper | Processing audio with duration 00:01.650
+2026-09-26 22:12:00 | INFO     | faster_whisper | Processing audio with duration 00:01.751
+2026-09-26 22:28:57 | INFO     | src.main | Database initialized, application starting up

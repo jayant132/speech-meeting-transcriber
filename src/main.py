@@ -43,7 +43,7 @@ async def get_status(job_id: str):
     if job is None:
         logger.warning("Status requested for unknown job %s", job_id)
         raise HTTPException(status_code=404, detail="Job not found")
-    return {"job_id": job["id"], "status": job["status"]}
+    return {"job_id": job["id"], "status": job["status"], "stage": job.get("stage")}
 
 
 @app.get("/result/{job_id}")
