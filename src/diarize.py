@@ -10,6 +10,9 @@ from src.errors import DiarizationError
 
 _diarization_pipeline = None
 
+_MAX_MERGE_GAP = 1.0
+_MAX_MERGED_DURATION = 28.0
+
 
 def _load_pipeline():
     global _diarization_pipeline
@@ -36,6 +39,24 @@ def _to_wav(input_path: str) -> str:
     return out_path
 
 
+def _merge_adjacent_same_speaker(turns: list[dict]) -> list[dict]:
+    if not turns:
+        return turns
+
+    merged = [dict(turns[0])]
+    for turn in turns[1:]:
+        last = merged[-1]
+        gap = turn["start"] - last["end"]
+        span = turn["end"] - last["start"]
+
+        if turn["speaker"] == last["speaker"] and gap <= _MAX_MERGE_GAP and span <= _MAX_MERGED_DURATION:
+            last["end"] = turn["end"]
+        else:
+            merged.append(dict(turn))
+
+    return merged
+
+
 def diarize(wav_path: str) -> list[dict]:
     pipeline = _load_pipeline()
     converted_path = _to_wav(wav_path)
@@ -58,7 +79,8 @@ def diarize(wav_path: str) -> list[dict]:
         raise DiarizationError("No speakers detected")
 
     turns.sort(key=lambda t: t["start"])
-    return _stabilize_speaker_labels(turns)
+    stabilized = _stabilize_speaker_labels(turns)
+    return _merge_adjacent_same_speaker(stabilized)
 
 
 def _stabilize_speaker_labels(turns: list[dict]) -> list[dict]:
