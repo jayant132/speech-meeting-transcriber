@@ -1,11 +1,10 @@
-import os
+﻿import os
 import subprocess
 import tempfile
 
 import soundfile as sf
 import torch
 from pyannote.audio import Pipeline
-from sklearn.cluster import AgglomerativeClustering
 from src.config import DIARIZATION_MODEL, HF_TOKEN
 from src.errors import DiarizationError
 
@@ -24,12 +23,16 @@ def _load_pipeline():
 def _to_wav(input_path: str) -> str:
     fd, out_path = tempfile.mkstemp(suffix=".wav")
     os.close(fd)
-    subprocess.run(
-        ["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", out_path],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", out_path],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        os.remove(out_path)
+        raise DiarizationError(f"Failed to process audio file: {input_path}") from e
     return out_path
 
 
