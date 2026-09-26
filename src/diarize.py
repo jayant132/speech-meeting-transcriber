@@ -5,13 +5,11 @@ import tempfile
 import soundfile as sf
 import torch
 from pyannote.audio import Pipeline
+from sklearn.cluster import AgglomerativeClustering
 from src.config import DIARIZATION_MODEL, HF_TOKEN
 from src.errors import DiarizationError
 
 _diarization_pipeline = None
-
-_MAX_MERGE_GAP = 1.0
-_MAX_MERGED_DURATION = 28.0
 
 
 def _load_pipeline():
@@ -30,31 +28,16 @@ def _to_wav(input_path: str) -> str:
         subprocess.run(
             ["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", out_path],
             check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            capture_output=True,
         )
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        os.remove(out_path)
-        raise DiarizationError(f"Failed to process audio file: {input_path}") from e
+    except subprocess.CalledProcessError as e:
+        if os.path.exists(out_path):
+            os.remove(out_path)
+        stderr_tail = e.stderr.decode(errors="ignore")[-500:] if e.stderr else "no ffmpeg output"
+        raise DiarizationError(f"Failed to convert '{input_path}': {stderr_tail}") from e
+    except FileNotFoundError as e:
+        raise DiarizationError("ffmpeg is not installed or not on PATH") from e
     return out_path
-
-
-def _merge_adjacent_same_speaker(turns: list[dict]) -> list[dict]:
-    if not turns:
-        return turns
-
-    merged = [dict(turns[0])]
-    for turn in turns[1:]:
-        last = merged[-1]
-        gap = turn["start"] - last["end"]
-        span = turn["end"] - last["start"]
-
-        if turn["speaker"] == last["speaker"] and gap <= _MAX_MERGE_GAP and span <= _MAX_MERGED_DURATION:
-            last["end"] = turn["end"]
-        else:
-            merged.append(dict(turn))
-
-    return merged
 
 
 def diarize(wav_path: str) -> list[dict]:
@@ -79,8 +62,7 @@ def diarize(wav_path: str) -> list[dict]:
         raise DiarizationError("No speakers detected")
 
     turns.sort(key=lambda t: t["start"])
-    stabilized = _stabilize_speaker_labels(turns)
-    return _merge_adjacent_same_speaker(stabilized)
+    return _stabilize_speaker_labels(turns)
 
 
 def _stabilize_speaker_labels(turns: list[dict]) -> list[dict]:
