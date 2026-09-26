@@ -18,3 +18,4 @@
   installed ctranslate2/torch CUDA runtime expectations. Switched to
   `WHISPER_DEVICE="cpu"` to unblock development; GPU acceleration is a
   possible future improvement pending a driver update.
+- Odia transcription verified working end-to-end via MMS-LID-based per-segment language detection (replaced unreliable Whisper auto-detection, which has no Odia support). Output is native Odia script (transcription, not translation). Quality not independently verified against a native Odia speaker.
