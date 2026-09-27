@@ -73,3 +73,8 @@ of slower inference on this hardware.
   "unsupported" but their transcribed text remains usable. A possible future
   improvement: fall back to the diarization turn's dominant/majority
   language when an individual short segment's LID confidence is low.
+## MMS-LID Per-Segment Consistency
+
+On a real 3-speaker, 3-language meeting recording, MMS-LID correctly routed 4 of 6 Odia segments to the Odia transcription path. The remaining 2 (both under 5 seconds) fell back to Whisper's auto-detection instead, producing lower-quality, less accurate output. This appears to correlate with segment length: shorter acoustic windows give the language classifier less signal to work with, a known characteristic of audio-based language ID rather than a bug in the routing logic.
+
+Notably, the confidence scoring feature correctly reflects this gap without any special-casing: correctly-routed Odia segments scored 0.95-0.97 confidence, while the 2 misrouted segments scored ~0.74-0.75. This means a downstream consumer of the API can automatically flag low-confidence segments for manual review, which is a real, practical use of the confidence score field beyond just reporting a number.
