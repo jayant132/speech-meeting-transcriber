@@ -1,4 +1,4 @@
-﻿from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 import numpy as np
 from src.transcribe import _cleanup_odia_text, transcribe_segment
 
@@ -32,6 +32,7 @@ def test_transcribe_segment_routes_english_to_whisper(
     mock_detect.return_value = "en"
     mock_segment = MagicMock()
     mock_segment.text = "hello world"
+    mock_segment.avg_logprob = -0.2
     mock_whisper = MagicMock()
     mock_whisper.transcribe.return_value = ([mock_segment], MagicMock())
     mock_load_whisper.return_value = mock_whisper
@@ -40,6 +41,7 @@ def test_transcribe_segment_routes_english_to_whisper(
 
     assert result["language"] == "en"
     assert "hello world" in result["text"]
+    assert 0.0 <= result["confidence"] <= 1.0
     mock_whisper.transcribe.assert_called_once()
 
 
@@ -51,11 +53,12 @@ def test_transcribe_segment_routes_odia_to_indicwav2vec(
 ):
     mock_extract.return_value = (np.zeros(16000), 16000)
     mock_detect.return_value = "or"
-    mock_transcribe_odia.return_value = "ଏହା ଏକ ପରୀକ୍ଷା।"
+    mock_transcribe_odia.return_value = ("ଏହା ଏକ ପରୀକ୍ଷା।", 0.9)
 
     result = transcribe_segment("fake.wav", 0.0, 1.0)
 
     assert result["language"] == "or"
+    assert result["confidence"] == 0.9
     mock_transcribe_odia.assert_called_once()
 
 

@@ -1,4 +1,5 @@
 ﻿from pathlib import Path
+import math
 import torch
 from faster_whisper import WhisperModel
 from transformers import AutoFeatureExtractor, Wav2Vec2ForSequenceClassification
@@ -70,15 +71,17 @@ def _extract_segment_audio(wav_path: str, start: float, end: float):
     return audio[start_sample:end_sample], sr
 
 
-def _transcribe_odia(audio, sample_rate: int) -> str:
+def _transcribe_odia(audio, sample_rate: int) -> tuple[str, float]:
     try:
         model, processor = _load_odia()
         inputs = processor(audio, sampling_rate=sample_rate, return_tensors="pt")
         with torch.no_grad():
             logits = model(inputs.input_values).logits
+        probs = torch.softmax(logits, dim=-1)
+        confidence = probs.max(dim=-1).values.mean().item()
         prediction_ids = torch.argmax(logits, dim=-1)
         text = processor.batch_decode(prediction_ids)[0]
-        return _cleanup_odia_text(text)
+        return _cleanup_odia_text(text), round(confidence, 3)
     except Exception as e:
         raise TranscriptionError(f"Odia transcription failed: {e}")
 
@@ -90,7 +93,7 @@ def _cleanup_odia_text(text: str) -> str:
     return text
 
 
-def _transcribe_whisper(audio, language: str | None) -> tuple[str, str]:
+def _transcribe_whisper(audio, language: str | None) -> tuple[str, str, float]:
     try:
         whisper = _load_whisper()
         segments, info = whisper.transcribe(
@@ -99,9 +102,17 @@ def _transcribe_whisper(audio, language: str | None) -> tuple[str, str]:
             beam_size=_BEAM_SIZE,
             condition_on_previous_text=False,
         )
+        segments = list(segments)
         text = " ".join(s.text.strip() for s in segments)
         detected_language = language or info.language
-        return text, detected_language
+
+        if segments:
+            avg_logprob = sum(s.avg_logprob for s in segments) / len(segments)
+            confidence = round(math.exp(avg_logprob), 3)
+        else:
+            confidence = 0.0
+
+        return text, detected_language, confidence
     except Exception as e:
         raise TranscriptionError(f"Whisper transcription failed: {e}")
 
@@ -115,11 +126,11 @@ def transcribe_segment(wav_path: str, start: float, end: float) -> dict:
     language = _detect_language(audio, sr)
 
     if language == "or":
-        text = _transcribe_odia(audio, sr)
+        text, confidence = _transcribe_odia(audio, sr)
     elif language in ("en", "hi"):
-        text, language = _transcribe_whisper(audio, language)
+        text, language, confidence = _transcribe_whisper(audio, language)
     else:
-        text, detected = _transcribe_whisper(audio, None)
+        text, detected, confidence = _transcribe_whisper(audio, None)
         language = detected if language == "uncertain" else "unsupported"
 
-    return {"text": text.strip(), "language": language}
+    return {"text": text.strip(), "language": language, "confidence": confidence}

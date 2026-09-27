@@ -10,6 +10,7 @@ def merge_transcript(diarized_turns: list[dict], transcribed_segments: list[dict
             "end": turn["end"],
             "text": transcript["text"],
             "language": transcript["language"],
+            "confidence": transcript.get("confidence"),
         })
     return merged
 

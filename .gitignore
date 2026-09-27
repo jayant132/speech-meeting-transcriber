@@ -1,13 +1,10 @@
-venv/
+﻿venv/
 __pycache__/
 *.pyc
 .env
 *.db
 models/
 .cache/
+uploads/
 samples/*.wav
-samples/*.mp4uploads/
-*.db
-.env
-venv/
-__pycache__/
+samples/*.mp4
