@@ -8,3 +8,8 @@ models/
 uploads/
 samples/*.wav
 samples/*.mp4
+
+logs/
+.env
+venv/
+__pycache__/
