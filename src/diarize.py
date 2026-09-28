@@ -1,4 +1,4 @@
-import os
+﻿import os
 import subprocess
 import tempfile
 
@@ -24,12 +24,19 @@ def _load_pipeline():
 def _to_wav(input_path: str) -> str:
     fd, out_path = tempfile.mkstemp(suffix=".wav")
     os.close(fd)
-    subprocess.run(
-        ["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", out_path],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", out_path],
+            check=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError as e:
+        if os.path.exists(out_path):
+            os.remove(out_path)
+        stderr_tail = e.stderr.decode(errors="ignore")[-500:] if e.stderr else "no ffmpeg output"
+        raise DiarizationError(f"Failed to convert '{input_path}': {stderr_tail}") from e
+    except FileNotFoundError as e:
+        raise DiarizationError("ffmpeg is not installed or not on PATH") from e
     return out_path
 
 

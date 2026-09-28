@@ -9,3 +9,9 @@ soundfile
 ffmpeg-python
 pytest
 httpx
+python-dotenv
+scikit-learn
+torch
+requests
+
+streamlit
