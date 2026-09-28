@@ -13,3 +13,5 @@ python-dotenv
 scikit-learn
 torch
 requests
+
+streamlit

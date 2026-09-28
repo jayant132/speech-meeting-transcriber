@@ -285,4 +285,4 @@ Full details in [`docs/limitations.md`](docs/limitations.md). Summary:
 
 No paid or external LLM API is used anywhere in this pipeline. All models —
 pyannote, faster-whisper, MMS-LID, IndicWav2Vec, and phi3.5 — run entirely
-locally, satisfying the assignment's restriction on external LLM API keys.
+locally.
