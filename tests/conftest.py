@@ -20,4 +20,4 @@ def pytest_collection_modifyitems(config, items):
 
 @pytest.fixture
 def sample_audio_path():
-    return "samples/demo.mp3"
+    return "samples/meeting_recording.mp3"

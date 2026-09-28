@@ -317,7 +317,7 @@ docs/
   architecture.md   Full technology reasoning and design decisions
   limitations.md    Known issues, honestly documented
   test_results.md   Real end-to-end run results
-samples/          Sample meeting recordings used for testing
+samples/          Official sample meeting recording used for the demo and testing
 ```
 
 ---
@@ -337,7 +337,7 @@ Full details in [`docs/limitations.md`](docs/limitations.md). Summary:
 
 - [x] Complete source code
 - [x] README with setup and execution instructions (this file)
-- [x] Sample meeting recordings (`samples/`)
+- [x] Official sample meeting recording (`samples/meeting_recording.mp3`)
 - [x] Structured transcript output (per-segment speaker, timestamps, text, language, confidence)
 - [x] Speaker-wise conversation statistics
 - [x] Generated Minutes of Meeting summary with key points, decisions, and action items
